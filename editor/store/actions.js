@@ -2,6 +2,7 @@
  * External Dependencies
  */
 import uuid from 'uuid/v4';
+import { BEGIN, COMMIT, REVERT } from 'redux-optimist';
 import { partial, castArray } from 'lodash';
 
 /**
@@ -11,6 +12,13 @@ import {
 	getDefaultBlockName,
 	createBlock,
 } from '@wordpress/blocks';
+
+/**
+ * Internal dependencies
+ */
+import {
+	POST_UPDATE_TRANSACTION_ID,
+} from './selectors';
 
 /**
  * Returns an action object used in signalling that editor has initialized with
@@ -664,5 +672,30 @@ export function insertDefaultBlock( attributes, rootUID, index ) {
 	return {
 		...insertBlock( block, index, rootUID ),
 		isProvisional: true,
+	};
+}
+
+export function updatePost( edits ) {
+	return {
+		type: 'UPDATE_POST',
+		edits: edits,
+		optimist: { type: BEGIN, id: POST_UPDATE_TRANSACTION_ID },
+	};
+}
+
+export function requestPostUpdateSuccess( edits, previousPost, post ) {
+	return {
+		type: 'REQUEST_POST_UPDATE_SUCCESS',
+		...{ previousPost, post, edits },
+		optimist: { type: COMMIT, id: POST_UPDATE_TRANSACTION_ID },
+
+	};
+}
+
+export function requestPostUpdateFailure( edits, post, error ) {
+	return {
+		type: 'REQUEST_POST_UPDATE_FAILURE',
+		...{ post, edits, error },
+		optimist: { type: REVERT, id: POST_UPDATE_TRANSACTION_ID },
 	};
 }
